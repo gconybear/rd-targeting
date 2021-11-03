@@ -1,0 +1,10 @@
+user params
+----
+
+cluster 1 filter
+red dot similarity
+past 5 yr home value growth
+population growth / change
+  - use pop ch metrics from blockdemographics
+predicted home value growth
+  - use pred hv metrics from blockrealestate

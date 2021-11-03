@@ -1,6 +1,14 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+from geocoding import parse_address_string
+from helpers import slider_printout
+from valid_cols import VALID_COLS
+from metric_means import MEANS
+
+# these are the default z score slider settings
+LOW_Z = -3.0
+UPPER_Z = 3.0
 
 st.set_page_config(layout='centered', page_icon='🎯')
 
@@ -21,6 +29,8 @@ def main():
     st.title("Targeting App")
 
     blank()
+
+
     with st.form(key='form'):
 
         st.markdown("**Cluster 1 Filter**")
@@ -31,7 +41,7 @@ def main():
             min_value=0.0,
             max_value=1.0,
             value=0.5,
-            step=0.1
+            step=0.025
             )
 
         blank()
@@ -47,74 +57,109 @@ def main():
 
         blank()
 
-        hpa = st.slider(
-            'Min. Predicted 3 yr Home Price Appreciation Z-Score',
-            min_value=-3.0,
-            max_value=3.0,
-            value=(-1.0, 1.0),
-            step=0.1
-        )
+        with st.expander("Housing and Economic filters"):
+            hpa_m, hpa_sd = MEANS['hpa']['mean'], MEANS['hpa']['sd']
+            hpa = st.slider(
+                f'Predicted 3 yr Home Price Appreciation % Z-Score --- (mean: {hpa_m * 100}%, sd: {hpa_sd * 100}%)',
+                min_value=-3.0,
+                max_value=3.0,
+                value=(LOW_Z, UPPER_Z),
+                step=0.1
+            )
 
-        pop_z = st.slider(
-            'Population Z-Score',
-            min_value=-3.0,
-            max_value=3.0,
-            value=(-1.0, 1.0),
-            step=0.1
-        )
+        # hpa_b = slider_printout(hpa, m=0.146, sd=0.134)
+        # st.write(f"HPA between {hpa_b['low']*100}% and {hpa_b['up']*100}%")
+            hv_m, hv_sd = MEANS['mhv']['mean'], MEANS['mhv']['sd']
+            hv_z = st.slider(
+                f'Median Home Value Z-Score --- (mean: {hv_m}, sd: {hv_sd})',
+                min_value=-3.0,
+                max_value=3.0,
+                value=(LOW_Z, UPPER_Z),
+                step=0.1
+            )
 
-        pop_ch_z = st.slider(
-            'Population Change Z-Score',
-            min_value=-3.0,
-            max_value=3.0,
-            value=(-1.0, 1.0),
-            step=0.1
-        )
+            hcol_z = st.slider(
+                f"Income to Rent Ratio Z-Score",
+                min_value=-3.0,
+                max_value=3.0,
+                value=(LOW_Z, UPPER_Z),
+                step=0.1,
+                help="""Defined as monthly per capita income / average monthly rent"""
+            )
 
-        hv_z = st.slider(
-            'Median Home Value Z-Score',
-            min_value=-3.0,
-            max_value=3.0,
-            value=(-1.0, 1.0),
-            step=0.1
-        )
+            ho_z = st.slider(
+                f"Home Ownership Z-Score",
+                min_value=-3.0,
+                max_value=3.0,
+                value=(LOW_Z, UPPER_Z),
+                step=0.1,
+                help="""Defined as % of population that owns a home"""
+            )
 
-        tax_z = st.slider(
-            'Median Real Estate Tax Z-Score',
-            min_value=-3.0,
-            max_value=3.0,
-            value=(-1.0, 1.0),
-            step=0.1
-        )
 
-        # rd_col, wealth_col = st.columns(2)
-        #
-        # rd_match = rd_col.selectbox(
-        #     'Red Dot demographic similarity',
-        #     ['low', 'medium', 'high']
-        # )
-        #
-        # wealth = wealth_col.slider(
-        #     'Min. Predicted 3 yr Home Price Appreciation %',
-        #     min_value=0.0,
-        #     max_value=3.0,
-        #     value=0.0,
-        #     step=0.1
-        # )
-        #
-        # home_val_col, crime_col = st.columns(2)
-        #
-        # home_val = home_val_col.selectbox(
-        #     'Home value growth',
-        #     ['low', 'medium', 'high']
-        # )
-        #
-        # crime = crime_col.selectbox(
-        #     'Crime level',
-        #     ['low', 'medium', 'high']
-        # )
+        with st.expander("Population filters"):
+            p_m, p_sd = MEANS['pop']['mean'], MEANS['pop']['sd']
+            pop_z = st.slider(
+                f'Population Z-Score --- (mean: {p_m}, sd: {p_sd})',
+                min_value=-3.0,
+                max_value=3.0,
+                value=(LOW_Z, UPPER_Z),
+                step=0.1
+            )
+
+            pc_m, pc_sd = MEANS['popch']['mean'], MEANS['popch']['sd']
+            pop_ch_z = st.slider(
+                f'Population Change Z-Score --- (mean: {pc_m}%, sd: {pc_sd}%)',
+                min_value=-3.0,
+                max_value=3.0,
+                value=(LOW_Z, UPPER_Z),
+                step=0.1
+            )
+
+        with st.expander("Tax filters"):
+            rtx_m, rtx_sd = MEANS['retax']['mean'], MEANS['retax']['sd']
+
+            tax_z = st.slider(
+                f'Median Real Estate Tax Z-Score --- (mean: {rtx_m}, sd: {rtx_sd})',
+                min_value=-3.0,
+                max_value=3.0,
+                value=(LOW_Z, UPPER_Z),
+                step=0.1
+            )
+
+
+        with st.expander("Crime filters"):
+
+            crime_z = st.slider(
+                f"Crime Density Z-Score",
+                min_value=-3.0,
+                max_value=3.0,
+                value=(LOW_Z, UPPER_Z),
+                step=0.1,
+                help="Defined as average number of crimes per sq. mile"
+            )
+
+
 
         blank()
+        num_results = st.number_input(
+            "choose how many results to show",
+            min_value=5,
+            max_value=50,
+            step=5,
+            value=15
+        )
+
+        cols_to_show = st.multiselect(
+            "choose which columns to show in dataframe" ,
+            VALID_COLS, ['city', 'cluster 1 probability']
+        )
+
+        map_bool = st.radio(
+            'show points on map?',
+            ['yes', 'no'], index=1
+        )
+
         submit_button = st.form_submit_button(label='Search')
 
 
@@ -127,6 +172,9 @@ def main():
         pz_ch_lower, pz_ch_upper = pop_ch_z
         hv_lower, hv_upper = hv_z
         tax_lower, tax_upper = tax_z
+        hcol_lower, hcol_upper = hcol_z
+        ho_lower, ho_upper = ho_z
+        crime_lower, crime_upper = crime_z
 
         data = df[
             (df['cluster 1 probability'] >= c1) & \
@@ -139,7 +187,11 @@ def main():
             (df['mhv_scaled'] >= hv_lower) & \
             (df['mhv_scaled'] <= hv_upper) & \
             (df['md_retax_scaled'] >= tax_lower) & \
-            (df['md_retax_scaled'] <= tax_upper)
+            (df['md_retax_scaled'] <= tax_upper) & \
+            (df['inc. to rent scaled'] >= hcol_lower) & \
+            (df['inc. to rent scaled'] <= hcol_upper) & \
+            (df['home ownership scaled'] >= ho_lower) & \
+            (df['home ownership scaled'] <= ho_upper)
             ]
 
         if 'All' in region_filter:
@@ -150,8 +202,17 @@ def main():
         data = data.sort_values('cluster 1 probability', ascending=False)
 
         st.markdown(f"**{data.shape[0]}** markets match these filters")
+        display_df = data.head(num_results).drop('Unnamed: 0', axis=1)
+        if map_bool == 'yes':
+            coords = [parse_address_string(a) for a in display_df['city'].values]
+            map_df = pd.DataFrame({
+                'lat': [x['lat'] for x in coords],
+                'lon': [x['long'] for x in coords]
+            })
 
-        st.dataframe(data)
+            st.map(map_df)
+
+        st.dataframe(display_df)
 
 
 
