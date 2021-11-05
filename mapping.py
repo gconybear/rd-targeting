@@ -8,10 +8,8 @@ class Mapper:
 
     def __init__(self):
 
-        # aws_key = st.secrets['AWS_ACCESS_KEY_ID']
-        # aws_secret = st.secrets['AWS_SECRET_ACCESS_KEY']
-        aws_key = "AKIAYK4RUY66NFIIHU4U"
-        aws_secret = "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"
+        aws_key = st.secrets['AWS_ACCESS_KEY_ID']
+        aws_secret = st.secrets['AWS_SECRET_ACCESS_KEY']
 
         GEO_FILE = 'full_new.geojson'
         BUCKET = 'neighborhoodscout'
