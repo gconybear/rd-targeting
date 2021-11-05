@@ -4,3 +4,4 @@ numpy
 pyproj
 folium
 smart_open[s3]
+branca==0.3.1
