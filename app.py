@@ -5,6 +5,21 @@ from geocoding import parse_address_string
 from helpers import slider_printout
 from valid_cols import VALID_COLS
 from metric_means import MEANS
+from mapping import Mapper
+import geopandas as gpd
+import pyproj
+
+import folium
+from folium import Marker
+from folium.plugins import MarkerCluster
+TILES = {
+    'cartodbdark_matter': 'cartodbdark_matter',
+    'cartodbpositron': 'cartodbpositron',
+    'OpenStreetMap': 'OpenStreetMap',
+    'Stamen Toner': 'Stamen Toner',
+    'Stamen Terrain': 'Stamen Terrain',
+    # 'stadia': 'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png'
+}
 
 # these are the default z score slider settings
 LOW_Z = -3.0
@@ -15,9 +30,10 @@ st.set_page_config(layout='centered', page_icon='🎯')
 @st.cache
 def get_data():
 
-    return pd.read_csv('data/dat.csv')
+    return pd.read_csv('data/dat.csv'), Mapper()
 
-df = get_data()
+df, mapper = get_data()
+DISPLAY_COLS = [x for x in df.columns if x != 'Unnamed: 0']
 
 def blank(): return st.text("")
 
@@ -152,7 +168,7 @@ def main():
 
         cols_to_show = st.multiselect(
             "choose which columns to show in dataframe" ,
-            VALID_COLS, ['city', 'cluster 1 probability']
+            DISPLAY_COLS, ['city', 'cluster 1 probability']
         )
 
         map_bool = st.radio(
@@ -204,15 +220,63 @@ def main():
         st.markdown(f"**{data.shape[0]}** markets match these filters")
         display_df = data.head(num_results).drop('Unnamed: 0', axis=1)
         if map_bool == 'yes':
-            coords = [parse_address_string(a) for a in display_df['city'].values]
-            map_df = pd.DataFrame({
-                'lat': [x['lat'] for x in coords],
-                'lon': [x['long'] for x in coords]
-            })
+            # coords = [parse_address_string(a) for a in display_df['city'].values]
+            # map_df = pd.DataFrame({
+            #     'lat': [x['lat'] for x in coords],
+            #     'lon': [x['long'] for x in coords]
+            # })
+            #
+            # st.map(map_df)
 
-            st.map(map_df)
+            blank()
 
+            # cdf = mapper.city_groups
+            # cdf = gpd.GeoDataFrame(cdf[cdf['city'].isin(display_df['city'].values)])
+            # cdf.to_crs(pyproj.CRS.from_epsg(4326), inplace=True)
+
+            gdf = mapper.data
+            gdf = gdf[gdf['city'].isin(display_df['city'].values)]
+            gdf = gpd.GeoDataFrame(gdf)
+
+            m = folium.Map([39.112701, -94.626801], zoom_start=3.5)
+
+            style_function = lambda x: {
+                'fillColor': 'red',
+                'color': 'red',
+                'fillOpacity': 0,
+                'weight': 3.0,
+            }
+
+            highlight_function = lambda x: {'fillColor': '#ef4036',
+                                'color':'#ef4036',
+                                'fillOpacity': 0.4,
+                                'weight': 0.5}
+
+            folium.GeoJson(gdf, style_function=style_function, highlight_function=highlight_function,
+                tooltip=folium.GeoJsonTooltip(
+                fields=['city'],
+                localize=True
+            )).add_to(m)
+
+
+
+            for sty in TILES:
+                folium.raster_layers.TileLayer(TILES[sty]).add_to(m)
+
+            folium.LayerControl().add_to(m)
+            st.markdown(m._repr_html_(), unsafe_allow_html=True)
+
+
+        blank()
+        blank()
+        st.write("Data ranked by cluster 1 probability")
+        display_df = display_df[cols_to_show].reset_index().drop('index', axis=1).round(2)
+        display_df.index = np.arange(1, len(display_df) + 1)
         st.dataframe(display_df)
+
+        blank()
+
+
 
 
 
