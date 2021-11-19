@@ -18,6 +18,7 @@ class Mapper:
 
         self.data = gpd.read_file(smart_open.smart_open(geo_path))
         self.data.to_crs(pyproj.CRS.from_epsg(4326), inplace=True)
+        self.data = self.data.drop_duplicates() 
 
         self.city_groups = self.data.groupby('city').aggregate({'geometry': list}).reset_index()
         self.city_groups['union'] = self.city_groups['geometry'].apply(lambda x: cascaded_union(x))

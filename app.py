@@ -63,9 +63,9 @@ def main():
         num_neighborhoods = st.slider(
             'minimum number of neighborhoods within market',
             min_value=0,
-            max_value=30,
+            max_value=20,
             value=1,
-            step=2
+            step=1
             )
 
         blank()
