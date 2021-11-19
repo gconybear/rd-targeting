@@ -60,14 +60,28 @@ def main():
             step=0.025
             )
 
+        num_neighborhoods = st.slider(
+            'minimum number of neighborhoods within market',
+            min_value=0,
+            max_value=15,
+            value=1,
+            step=1
+            )
+
         blank()
 
         st.markdown("**Demographic Filters**")
         blank()
 
-        region_filter = st.multiselect(
-            "choose region(s)",
-            ['South', 'West', 'Midwest', 'Northeast', 'All'],
+        # region_filter = st.multiselect(
+        #     "choose region(s)",
+        #     ['South', 'West', 'Midwest', 'Northeast', 'All'],
+        #     ['All']
+        # )
+
+        state_filter = st.multiselect(
+            "choose state(s)",
+            ['All'] + sorted(list(df['state'].unique())),
             ['All']
         )
 
@@ -207,13 +221,19 @@ def main():
             (df['inc. to rent scaled'] >= hcol_lower) & \
             (df['inc. to rent scaled'] <= hcol_upper) & \
             (df['home ownership scaled'] >= ho_lower) & \
-            (df['home ownership scaled'] <= ho_upper)
+            (df['home ownership scaled'] <= ho_upper) & \
+            (df['num. neighborhoods'] >= num_neighborhoods)
             ]
 
-        if 'All' in region_filter:
+        # if 'All' in region_filter:
+        #     pass
+        # else:
+        #     data = data[data['region'].isin(region_filter)]
+
+        if 'All' in state_filter:
             pass
         else:
-            data = data[data['region'].isin(region_filter)]
+            data = data[data['state'].isin(state_filter)]
 
         data = data.sort_values('cluster 1 probability', ascending=False)
 
