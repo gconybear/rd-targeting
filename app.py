@@ -12,6 +12,8 @@ import pyproj
 import folium
 from folium import Marker
 from folium.plugins import MarkerCluster
+from zscore_slider_vals import SLIDER_Z_SCORES
+
 TILES = {
     'cartodbdark_matter': 'cartodbdark_matter',
     'cartodbpositron': 'cartodbpositron',
@@ -89,82 +91,111 @@ def main():
 
         with st.expander("Housing and Economic filters"):
             hpa_m, hpa_sd = MEANS['hpa']['mean'], MEANS['hpa']['sd']
+            mn, mx = SLIDER_Z_SCORES['hpa_3yr_pred_scaled']
             hpa = st.slider(
                 f'Predicted 3 yr Home Price Appreciation % Z-Score --- (mean: {hpa_m * 100}%, sd: {hpa_sd * 100}%)',
-                min_value=-3.0,
-                max_value=3.0,
-                value=(LOW_Z, UPPER_Z),
+                min_value=mn,
+                max_value=mx,
+                value=(mn, mx),
                 step=0.1
             )
 
         # hpa_b = slider_printout(hpa, m=0.146, sd=0.134)
         # st.write(f"HPA between {hpa_b['low']*100}% and {hpa_b['up']*100}%")
             hv_m, hv_sd = MEANS['mhv']['mean'], MEANS['mhv']['sd']
+            mn, mx = SLIDER_Z_SCORES['mhv_scaled']
             hv_z = st.slider(
                 f'Median Home Value Z-Score --- (mean: {hv_m}, sd: {hv_sd})',
-                min_value=-3.0,
-                max_value=3.0,
-                value=(LOW_Z, UPPER_Z),
+                min_value=mn,
+                max_value=mx,
+                value=(mn, mx),
                 step=0.1
             )
 
+            hcol_m, hcol_sd = MEANS['income_to_rent']['mean'], MEANS['income_to_rent']['sd']
+            mn, mx = SLIDER_Z_SCORES['inc. to rent scaled']
             hcol_z = st.slider(
-                f"Income to Rent Ratio Z-Score",
-                min_value=-3.0,
-                max_value=3.0,
-                value=(LOW_Z, UPPER_Z),
+                f"Income to Rent Ratio Z-Score --- (mean: {hcol_m}, sd: {hcol_sd})",
+                min_value=mn,
+                max_value=mx,
+                value=(mn, mx),
                 step=0.1,
                 help="""Defined as monthly per capita income / average monthly rent"""
             )
 
+            ho_m, ho_sd = MEANS['home_own']['mean'], MEANS['home_own']['sd']
+            mn, mx = SLIDER_Z_SCORES['home ownership scaled']
             ho_z = st.slider(
-                f"Home Ownership Z-Score",
-                min_value=-3.0,
-                max_value=3.0,
-                value=(LOW_Z, UPPER_Z),
+                f"Home Ownership % Z-Score --- (mean: {ho_m}, sd: {ho_sd})",
+                min_value=mn,
+                max_value=mx,
+                value=(mn, mx),
                 step=0.1,
                 help="""Defined as % of population that owns a home"""
             )
 
 
         with st.expander("Population filters"):
-            p_m, p_sd = MEANS['pop']['mean'], MEANS['pop']['sd']
-            pop_z = st.slider(
-                f'Population Z-Score --- (mean: {p_m}, sd: {p_sd})',
-                min_value=-3.0,
-                max_value=3.0,
-                value=(LOW_Z, UPPER_Z),
+            p_m, p_sd = MEANS['pop5']['mean'], MEANS['pop5']['sd']
+            mn, mx = SLIDER_Z_SCORES['pop_est_5mile_scaled']
+            pop5_z = st.slider(
+                f'Population within 5 miles Z-Score --- (mean: {p_m}, sd: {p_sd})',
+                min_value=mn,
+                max_value=mx,
+                value=(mn, mx),
                 step=0.1
             )
 
-            pc_m, pc_sd = MEANS['popch']['mean'], MEANS['popch']['sd']
-            pop_ch_z = st.slider(
-                f'Population Change Z-Score --- (mean: {pc_m}%, sd: {pc_sd}%)',
-                min_value=-3.0,
-                max_value=3.0,
-                value=(LOW_Z, UPPER_Z),
+            p_m, p_sd = MEANS['pop25']['mean'], MEANS['pop25']['sd']
+            mn, mx = SLIDER_Z_SCORES['pop_est_25mile_scaled']
+            pop25_z = st.slider(
+                f'Population within 25 miles Z-Score --- (mean: {p_m}, sd: {p_sd})',
+                min_value=mn,
+                max_value=mx,
+                value=(mn, mx),
+                step=0.1
+            )
+
+            pc_m, pc_sd = MEANS['popch5']['mean'], MEANS['popch5']['sd']
+            mn, mx = SLIDER_Z_SCORES['pop_ch_5mile_scaled']
+            pop_ch5_z = st.slider(
+                f'Population Change 5 miles Z-Score --- (mean: {pc_m}, sd: {pc_sd})',
+                min_value=mn,
+                max_value=mx,
+                value=(mn, mx),
+                step=0.1
+            )
+
+            pc_m, pc_sd = MEANS['popch25']['mean'], MEANS['popch25']['sd']
+            mn, mx = SLIDER_Z_SCORES['pop_ch_25mile_scaled']
+            pop_ch25_z = st.slider(
+                f'Population Change 5 miles Z-Score --- (mean: {pc_m}%, sd: {pc_sd}%)',
+                min_value=mn,
+                max_value=mx,
+                value=(mn, mx),
                 step=0.1
             )
 
         with st.expander("Tax filters"):
             rtx_m, rtx_sd = MEANS['retax']['mean'], MEANS['retax']['sd']
-
+            mn, mx = SLIDER_Z_SCORES['md_retax_scaled']
             tax_z = st.slider(
                 f'Median Real Estate Tax Z-Score --- (mean: {rtx_m}, sd: {rtx_sd})',
-                min_value=-3.0,
-                max_value=3.0,
-                value=(LOW_Z, UPPER_Z),
+                min_value=mn,
+                max_value=mx,
+                value=(mn, mx),
                 step=0.1
             )
 
 
         with st.expander("Crime filters"):
-
+            crime_m, crime_sd = MEANS['crime']['mean'], MEANS['crime']['sd']
+            mn, mx = SLIDER_Z_SCORES['density_total_scaled']
             crime_z = st.slider(
-                f"Crime Density Z-Score",
-                min_value=-3.0,
-                max_value=3.0,
-                value=(LOW_Z, UPPER_Z),
+                f"Crime Density Z-Score --- (mean: {crime_m}, sd: {crime_sd})",
+                min_value=mn,
+                max_value=mx,
+                value=(mn, mx),
                 step=0.1,
                 help="Defined as average number of crimes per sq. mile"
             )
@@ -196,24 +227,34 @@ def main():
     if submit_button:
         blank()
 
+
         # hpa = hpa / 100
         hpa_lower, hpa_upper = hpa
-        pz_lower, pz_upper = pop_z
-        pz_ch_lower, pz_ch_upper = pop_ch_z
+        pz5_lower, pz5_upper = pop5_z
+        pz25_lower, pz25_upper = pop25_z
+        pz_ch5_lower, pz_ch5_upper = pop_ch5_z
+        pz_ch25_lower, pz_ch25_upper = pop_ch25_z
         hv_lower, hv_upper = hv_z
         tax_lower, tax_upper = tax_z
         hcol_lower, hcol_upper = hcol_z
         ho_lower, ho_upper = ho_z
         crime_lower, crime_upper = crime_z
 
+        # 'Vail, CO' in df['city'].values
+        # st.dataframe(df[df['city'] == 'Vail, CO'])
+
         data = df[
             (df['cluster 1 probability'] >= c1) & \
-            (df['pop_est_25mile_scaled'] >= pz_lower) & \
-            (df['pop_est_25mile_scaled'] <= pz_upper) & \
-            (df['pop_ch_25mile_scaled'] >= pz_ch_lower) & \
-            (df['pop_ch_25mile_scaled'] <= pz_ch_upper) & \
-            (df['hpa_3yr_pred'] >= hpa_lower) & \
-            (df['hpa_3yr_pred'] <= hpa_upper) & \
+            (df['pop_est_5mile_scaled'] >= pz5_lower) & \
+            (df['pop_est_5mile_scaled'] <= pz5_upper) & \
+            (df['pop_est_25mile_scaled'] >= pz25_lower) & \
+            (df['pop_est_25mile_scaled'] <= pz25_upper) & \
+            (df['pop_ch_5mile_scaled'] >= pz_ch5_lower) & \
+            (df['pop_ch_5mile_scaled'] <= pz_ch5_upper) & \
+            (df['pop_ch_25mile_scaled'] >= pz_ch25_lower) & \
+            (df['pop_ch_25mile_scaled'] <= pz_ch25_upper) & \
+            (df['hpa_3yr_pred_scaled'] >= hpa_lower) & \
+            (df['hpa_3yr_pred_scaled'] <= hpa_upper) & \
             (df['mhv_scaled'] >= hv_lower) & \
             (df['mhv_scaled'] <= hv_upper) & \
             (df['md_retax_scaled'] >= tax_lower) & \
@@ -222,13 +263,11 @@ def main():
             (df['inc. to rent scaled'] <= hcol_upper) & \
             (df['home ownership scaled'] >= ho_lower) & \
             (df['home ownership scaled'] <= ho_upper) & \
+            (df['density_total_scaled'] >= crime_lower) & \
+            (df['density_total_scaled'] <= crime_upper) & \
             (df['num. neighborhoods'] >= num_neighborhoods)
             ]
 
-        # if 'All' in region_filter:
-        #     pass
-        # else:
-        #     data = data[data['region'].isin(region_filter)]
 
         if 'All' in state_filter:
             pass
