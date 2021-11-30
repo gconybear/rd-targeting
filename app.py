@@ -169,7 +169,7 @@ def main():
             pc_m, pc_sd = MEANS['popch25']['mean'], MEANS['popch25']['sd']
             mn, mx = SLIDER_Z_SCORES['pop_ch_25mile_scaled']
             pop_ch25_z = st.slider(
-                f'Population Change 5 miles Z-Score --- (mean: {pc_m}%, sd: {pc_sd}%)',
+                f'Population Change 25 miles Z-Score --- (mean: {pc_m}%, sd: {pc_sd}%)',
                 min_value=mn,
                 max_value=mx,
                 value=(mn, mx),
