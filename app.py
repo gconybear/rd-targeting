@@ -330,6 +330,14 @@ def main():
             folium.LayerControl().add_to(m)
             st.markdown(m._repr_html_(), unsafe_allow_html=True)
 
+            blank()
+            st.download_button(
+                label='Download map',
+                data=m._repr_html_(),
+                file_name='targeting_map.html',
+                mime='text/html'
+            )
+
 
         blank()
         blank()
@@ -340,7 +348,7 @@ def main():
 
         blank()
         st.download_button(
-            label='Export data',
+            label='Download data',
             data=convert_df(display_df),
             file_name='target_markets.csv',
             mime='text/csv'
