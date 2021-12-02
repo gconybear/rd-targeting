@@ -30,6 +30,11 @@ UPPER_Z = 3.0
 st.set_page_config(layout='centered', page_icon='🎯')
 
 @st.cache
+def convert_df(df):
+    # IMPORTANT: Cache the conversion to prevent computation on every rerun
+    return df.to_csv().encode('utf-8')
+
+@st.cache
 def get_data():
 
     return pd.read_csv('data/dat.csv'), Mapper()
@@ -334,6 +339,12 @@ def main():
         st.dataframe(display_df)
 
         blank()
+        st.download_button(
+            label='Export data',
+            data=convert_df(display_df),
+            file_name='target_markets.csv',
+            mime='text/csv'
+        )
 
 
 
