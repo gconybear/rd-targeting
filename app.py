@@ -211,7 +211,7 @@ def main():
         num_results = st.number_input(
             "choose how many results to show",
             min_value=5,
-            max_value=50,
+            max_value=500,
             step=5,
             value=15
         )
