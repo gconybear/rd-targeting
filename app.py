@@ -56,14 +56,22 @@ def main():
 
     with st.form(key='form'):
 
-        st.markdown("**Cluster 1 Filter**")
+        st.markdown("**Cluster Filters**")
         blank()
         # c1_col, c2_col= st.columns(2)
         c1 = st.slider(
             'minimum average cluster 1 probability',
             min_value=0.0,
             max_value=1.0,
-            value=0.5,
+            value=0.0,
+            step=0.025
+            ) 
+        
+        c3 = st.slider(
+            'minimum average cluster 3 probability',
+            min_value=0.0,
+            max_value=1.0,
+            value=0.0,
             step=0.025
             )
 
@@ -218,7 +226,7 @@ def main():
 
         cols_to_show = st.multiselect(
             "choose which columns to show in dataframe" ,
-            DISPLAY_COLS, ['city', 'cluster 1 probability']
+            sorted(DISPLAY_COLS), ['city', 'cluster 1 probability']
         )
 
         map_bool = st.radio(
@@ -246,10 +254,11 @@ def main():
         crime_lower, crime_upper = crime_z
 
         # 'Vail, CO' in df['city'].values
-        # st.dataframe(df[df['city'] == 'Vail, CO'])
+        # st.dataframe(df[df['city'] == 'Vail, CO']) 
 
         data = df[
             (df['cluster 1 probability'] >= c1) & \
+            (df['cluster 3 probability'] >= c3) & \
             (df['pop_est_5mile_scaled'] >= pz5_lower) & \
             (df['pop_est_5mile_scaled'] <= pz5_upper) & \
             (df['pop_est_25mile_scaled'] >= pz25_lower) & \
